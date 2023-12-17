@@ -1,13 +1,25 @@
 let transactions = [];
 let filteredData = [];
-const filters = {name: "", date: "", title: ""};
+const filters = { name: "", date: "", title: "", id: "" };
 let sortBy = "date";
 let sortDir = 1;
-const itemsPerPage = 20;
+let itemsPerPage = 20;
 let currentPage = 1;
 
+function updateURL() {
+  const queryString = `?name=${filters.name}&date=${filters.date}&title=${filters.title}&sort=${sortBy}&dir=${sortDir}&page=${currentPage}`;
+  window.history.replaceState({}, "", queryString);
+}
 document.addEventListener("DOMContentLoaded", function () {
-  fetch("records.json")
+  const urlParams = new URLSearchParams(window.location.search);
+  filters.name = urlParams.get("name") || "";
+  filters.date = urlParams.get("date") || "";
+  filters.title = urlParams.get("title") || "";
+  sortBy = urlParams.get("sort") || "date";
+  sortDir = parseInt(urlParams.get("dir")) || 1;
+  currentPage = parseInt(urlParams.get("page")) || 1;
+
+  fetch("../db/transaction/records.json")
     .then((response) => response.json())
     .then((data) => {
       transactions = data;
@@ -27,12 +39,12 @@ function applyFilters() {
   updateURL();
 }
 
-function changeSortDirection() {
+/*function changeSortDirection() {
   const sortDirectionSelect = document.getElementById("sortDirection");
   sortDir = sortDirectionSelect.value === "asc" ? 1 : -1;
   renderTable();
   updateURL();
-}
+}*/
 
 function sortTable(key) {
   if (sortBy === key) {
@@ -70,15 +82,16 @@ function renderTable() {
   const tableBody = document.getElementById("tableBody");
   tableBody.innerHTML = "";
 
-  paginatedData.forEach(function (item) {
+  paginatedData.forEach((item, index) => {
     const row = tableBody.insertRow();
 
-    const cellDate = row.insertCell(0);
-    const cellName = row.insertCell(1);
-    const cellTitle = row.insertCell(2);
-    const cellField = row.insertCell(3);
-    const cellOldValue = row.insertCell(4);
-    const cellNewValue = row.insertCell(5);
+    const cellNumber = row.insertCell(0);
+    const cellDate = row.insertCell(1);
+    const cellName = row.insertCell(2);
+    const cellTitle = row.insertCell(3);
+    const cellField = row.insertCell(4);
+    const cellOldValue = row.insertCell(5);
+    const cellNewValue = row.insertCell(6);
 
     cellDate.innerHTML = item.date;
     cellName.innerHTML = item.name;
@@ -86,6 +99,7 @@ function renderTable() {
     cellField.innerHTML = item.field;
     cellOldValue.innerHTML = item.old_value;
     cellNewValue.innerHTML = item.new_value;
+    cellNumber.innerHTML = start + index + 1;
   });
 
   renderPagination();
@@ -99,19 +113,19 @@ function renderPagination() {
   pagination.innerHTML = "";
 
   const prevButton = createPaginationButton(
-      "Previous",
-      function () {
-        if (currentPage > 1) {
-          currentPage--;
-          renderTable();
-        }
-      },
-      "bg-blue-500",
-      "text-white",
-      "px-4",
-      "py-2",
-      "rounded",
-      "mr-2"
+    "Previous",
+    function () {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+      }
+    },
+    "bg-blue-500",
+    "text-white",
+    "px-4",
+    "py-2",
+    "rounded",
+    "mr-2"
   );
   pagination.appendChild(prevButton);
 
@@ -122,19 +136,19 @@ function renderPagination() {
 
   if (startPage > 1) {
     const firstPageButton = createPaginationButton(
-        1,
-        function () {
-          currentPage = 1;
-          renderTable();
-        },
-        1 === currentPage ? "bg-blue-500" : "border",
-        "px-4",
-        "py-2",
-        "rounded",
-        "mr-2",
-        "cursor-pointer",
-        "hover:bg-blue-500",
-        "hover:text-white"
+      1,
+      function () {
+        currentPage = 1;
+        renderTable();
+      },
+      1 === currentPage ? "bg-blue-500" : "border",
+      "px-4",
+      "py-2",
+      "rounded",
+      "mr-2",
+      "cursor-pointer",
+      "hover:bg-blue-500",
+      "hover:text-white"
     );
     pagination.appendChild(firstPageButton);
 
@@ -148,21 +162,21 @@ function renderPagination() {
 
   for (let i = startPage; i <= endPage; i++) {
     const button = createPaginationButton(
-        i,
-        (function (page) {
-          return function () {
-            currentPage = page;
-            renderTable();
-          };
-        })(i),
-        i === currentPage ? "bg-blue-500" : "border",
-        "px-4",
-        "py-2",
-        "rounded",
-        "mr-2",
-        "cursor-pointer",
-        "hover:bg-blue-500",
-        "hover:text-white"
+      i,
+      (function (page) {
+        return function () {
+          currentPage = page;
+          renderTable();
+        };
+      })(i),
+      i === currentPage ? "bg-blue-500" : "border",
+      "px-4",
+      "py-2",
+      "rounded",
+      "mr-2",
+      "cursor-pointer",
+      "hover:bg-blue-500",
+      "hover:text-white"
     );
     pagination.appendChild(button);
   }
@@ -176,36 +190,36 @@ function renderPagination() {
     }
 
     const lastPageButton = createPaginationButton(
-        totalPages,
-        function () {
-          currentPage = totalPages;
-          renderTable();
-        },
-        totalPages === currentPage ? "bg-blue-500" : "border",
-        "px-4",
-        "py-2",
-        "rounded",
-        "mr-2",
-        "cursor-pointer",
-        "hover:bg-blue-500",
-        "hover:text-white"
+      totalPages,
+      function () {
+        currentPage = totalPages;
+        renderTable();
+      },
+      totalPages === currentPage ? "bg-blue-500" : "border",
+      "px-4",
+      "py-2",
+      "rounded",
+      "mr-2",
+      "cursor-pointer",
+      "hover:bg-blue-500",
+      "hover:text-white"
     );
     pagination.appendChild(lastPageButton);
   }
 
   const nextButton = createPaginationButton(
-      "Next",
-      function () {
-        if (currentPage < totalPages) {
-          currentPage++;
-          renderTable();
-        }
-      },
-      "bg-blue-500",
-      "text-white",
-      "px-4",
-      "py-2",
-      "rounded"
+    "Next",
+    function () {
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+      }
+    },
+    "bg-blue-500",
+    "text-white",
+    "px-4",
+    "py-2",
+    "rounded"
   );
   pagination.appendChild(nextButton);
 }
@@ -218,37 +232,33 @@ function createPaginationButton(text, onClick, ...classes) {
   return button;
 }
 
-function updateURL() {
-  const queryString = `?name=${filters.name}&date=${filters.date}&title=${filters.title}&sort=${sortBy}&dir=${sortDir}&page=${currentPage}`;
-  window.history.replaceState({}, "", queryString);
+function goToSpecificPage() {
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const specificPageInput = document.getElementById("specificPage");
+  const pageNumber = parseInt(specificPageInput.value);
+
+  if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+    currentPage = pageNumber;
+    renderTable();
+    updateURL();
+  } else {
+    alert("Please enter a valid page number between 1 and " + totalPages);
+  }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  filters.name = urlParams.get("name") || "";
-  filters.date = urlParams.get("date") || "";
-  filters.title = urlParams.get("title") || "";
-  sortBy = urlParams.get("sort") || "date";
-  sortDir = parseInt(urlParams.get("dir")) || 1;
-  currentPage = parseInt(urlParams.get("page")) || 1;
-
-  fetch("records.json")
-    .then((response) => response.json())
-    .then((data) => {
-      transactions = data;
-      filteredData = [...transactions];
-      renderTable();
-    })
-    .catch((error) => console.error("Error fetching data:", error));
-});
+function changeItemsPerPage() {
+  const itemsPerPageSelect = document.getElementById("itemsPerPage");
+  itemsPerPage = parseInt(itemsPerPageSelect.value);
+  currentPage = 1;
+  renderTable();
+  updateURL();
+}
 
 function showAllData() {
-  // Reset filters
   filters.name = "";
   filters.date = "";
   filters.title = "";
 
-  // Reset sorting
   sortBy = "date";
   sortDir = 1;
 
@@ -256,23 +266,3 @@ function showAllData() {
   renderTable();
   updateURL();
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-
-  const urlParams = new URLSearchParams(window.location.search);
-  filters.name = urlParams.get("name") || "";
-  filters.date = urlParams.get("date") || "";
-  filters.title = urlParams.get("title") || "";
-  sortBy = urlParams.get("sort") || "date";
-  sortDir = parseInt(urlParams.get("dir")) || 1;
-  currentPage = parseInt(urlParams.get("page")) || 1;
-
-  fetch("../db/transaction/records.json")
-    .then((response) => response.json())
-    .then((data) => {
-      transactions = data;
-      filteredData = [...transactions];
-      renderTable();
-    })
-    .catch((error) => console.error("Error fetching data:", error));
-});

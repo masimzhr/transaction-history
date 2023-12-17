@@ -17,7 +17,6 @@ th {
   cursor: pointer;
   padding: 20px;
   text-align: right;
-  color: red;
 }
 
 .active {
@@ -27,4 +26,31 @@ th {
 
 #pagination button {
   margin-right: 5px;
+}
+#transactionTable tbody tr td:first-child {
+  text-align: center;
+}
+#transactionTable tbody tr td:nth-child(2) {
+  text-align: center;
+}
+#transactionTable tbody tr td:nth-child(3) {
+  text-align: center;
+}
+#transactionTable tbody tr td:nth-child(4) {
+  text-align: center;
+}
+#transactionTable tbody tr td:nth-child(5) {
+  text-align: center;
+}
+#transactionTable tbody tr:hover {
+  box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
+}
+#transactionTable tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+input:focus,
+select:focus {
+  border: 1px solid blue;
+  outline: none;
 }
